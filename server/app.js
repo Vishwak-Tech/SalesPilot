@@ -2,7 +2,9 @@
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 
+import { env } from "./config/env.js";
 import {
   notFound,
   errorHandler,
@@ -13,17 +15,20 @@ const app = express();
 // CORS configuration
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: env.CLIENT_URL,
     credentials: true,
   })
 );
+
+// Cookie parser
+app.use(cookieParser());
 
 // Body parsers
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true }));
 
 // HTTP request logging
-if (process.env.NODE_ENV !== "production") {
+if (env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
 
@@ -32,7 +37,7 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
     message: "SalesPilot API is running",
-    environment: process.env.NODE_ENV,
+    environment: env.NODE_ENV,
   });
 });
 

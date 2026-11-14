@@ -1,18 +1,15 @@
 
-import "dotenv/config";
-
+import { env } from "./config/env.js";
 import app from "./app.js";
 import connectDB from "./config/db.js";
-
-const PORT = process.env.PORT || 8000;
 
 const startServer = async () => {
   try {
     await connectDB();
 
-    app.listen(PORT, () => {
+    app.listen(env.PORT, () => {
       console.log(
-        `SalesPilot CRM API running at http://localhost:${PORT}`
+        `SalesPilot CRM API running at http://localhost:${env.PORT}`
       );
     });
   } catch (error) {

@@ -46,8 +46,8 @@ const userSchema = new mongoose.Schema(
 
     avatar: {
       type: String,
-      default: "",
       trim: true,
+      default: "",
     },
   },
   {
