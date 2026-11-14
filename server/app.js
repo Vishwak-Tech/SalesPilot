@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import authRoutes from "./routes/auth.routes.js";
 
 import { env } from "./config/env.js";
 import {
@@ -41,7 +42,8 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-// Register application routes here
+// Application routes
+app.use("/api/auth", authRoutes);
 
 // 404 and error handling — always last
 app.use(notFound);
