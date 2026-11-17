@@ -3,8 +3,12 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+
 import authRoutes from "./routes/auth.routes.js";
 import leadRoutes from "./routes/lead.routes.js";
+import contactRoutes from "./routes/contact.routes.js";
+import noteRoutes from "./routes/note.routes.js";
+import taskRoutes from "./routes/task.routes.js";
 
 import { env } from "./config/env.js";
 import {
@@ -46,6 +50,9 @@ app.get("/api/health", (req, res) => {
 // Application routes
 app.use("/api/auth", authRoutes);
 app.use("/api/leads", leadRoutes);
+app.use("/api/contacts", contactRoutes);
+app.use("/api/notes", noteRoutes);
+app.use("/api/tasks", taskRoutes);
 
 // 404 and error handling — always last
 app.use(notFound);

@@ -3,14 +3,13 @@ import mongoose from "mongoose";
 
 const contactSchema = new mongoose.Schema(
   {
-    // Contact ownership
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: false,
     },
 
-    // Basic contact information
     name: {
       type: String,
       required: [true, "Contact name is required"],
@@ -52,10 +51,17 @@ const contactSchema = new mongoose.Schema(
       maxlength: 100,
     },
 
-    // Organization
     tags: {
       type: [String],
       default: [],
+      validate: {
+        validator: (tags) =>
+          tags.length <= 20 &&
+          tags.every(
+            (tag) => tag.trim().length > 0 && tag.length <= 30
+          ),
+        message: "Maximum 20 tags allowed, each up to 30 characters",
+      },
     },
 
     notes: {
@@ -75,16 +81,10 @@ const contactSchema = new mongoose.Schema(
   }
 );
 
-// Owner-scoped contact listing
 contactSchema.index({ owner: 1, createdAt: -1 });
 
-// Weighted full-text search
 contactSchema.index(
-  {
-    name: "text",
-    email: "text",
-    company: "text",
-  },
+  { name: "text", email: "text", company: "text" },
   {
     weights: {
       name: 10,
