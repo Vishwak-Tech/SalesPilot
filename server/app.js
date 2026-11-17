@@ -10,6 +10,7 @@ import contactRoutes from "./routes/contact.routes.js";
 import noteRoutes from "./routes/note.routes.js";
 import taskRoutes from "./routes/task.routes.js";
 import aiRoutes from "./routes/ai.routes.js";
+import analyticsRoutes from "./routes/analytics.routes.js";
 
 import { env } from "./config/env.js";
 import {
@@ -55,6 +56,7 @@ app.use("/api/contacts", contactRoutes);
 app.use("/api/notes", noteRoutes);
 app.use("/api/tasks", taskRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 // 404 and error handling — always last
 app.use(notFound);
