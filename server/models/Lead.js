@@ -1,6 +1,12 @@
 import mongoose from "mongoose";
 
-export const LEAD_STATUSES = ["New", "Qualified", "Proposal", "Won", "Lost"];
+export const LEAD_STATUSES = [
+  "New",
+  "Qualified",
+  "Proposal",
+  "Won",
+  "Lost",
+];
 
 export const LEAD_PRIORITIES = ["Low", "Medium", "High"];
 
@@ -35,7 +41,10 @@ const leadSchema = new mongoose.Schema(
       lowercase: true,
       default: "",
       maxlength: 254,
-      match: [/^$|^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Please provide a valid email"],
+      match: [
+        /^$|^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        "Please provide a valid email",
+      ],
     },
 
     phone: {
@@ -110,10 +119,10 @@ const leadSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
-// Indexes for owner-scoped queries
+// Indexes for owner-scoped queries.
 leadSchema.index({ owner: 1, status: 1 });
 leadSchema.index({ owner: 1, createdAt: -1 });
 
