@@ -14,9 +14,22 @@ export function AiInsightsCard() {
 
   const run = async () => {
     setLoading(true);
+
     try {
       const res = await aiApi.salesInsights({});
-      setData(res);
+
+      // Extract the actual AI insights from the API response.
+      const insights = res?.data ?? res;
+
+      if (
+        typeof insights?.healthScore !== "number" ||
+        !Array.isArray(insights?.insights) ||
+        !Array.isArray(insights?.recommendations)
+      ) {
+        throw new Error("Invalid AI insights response.");
+      }
+
+      setData(insights);
     } catch (err) {
       toast.error(err.message || "Could not generate insights");
     } finally {
@@ -32,7 +45,9 @@ export function AiInsightsCard() {
             <Sparkles className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-base font-semibold text-ink">AI Sales Insights</h3>
+            <h3 className="text-base font-semibold text-ink">
+              AI Sales Insights
+            </h3>
             <p className="text-xs text-ink-soft">Powered by Gemini</p>
           </div>
         </div>
@@ -76,10 +91,16 @@ export function AiInsightsCard() {
                 style={{ width: `${data.healthScore}%` }}
               />
             </div>
-            <p className="mt-2.5 text-sm font-medium text-ink">{data.headline}</p>
+            <p className="mt-2.5 text-sm font-medium text-ink">
+              {data.headline}
+            </p>
           </div>
 
-          <Section icon={TrendingUp} title="Observations" items={data.insights} />
+          <Section
+            icon={TrendingUp}
+            title="Observations"
+            items={data.insights}
+          />
           <Section
             icon={Lightbulb}
             title="Recommendations"

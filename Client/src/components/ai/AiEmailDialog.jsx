@@ -10,16 +10,42 @@ import { toast } from "sonner";
  */
 export function AiEmailDialog({ open, onClose, lead }) {
   const [purpose, setPurpose] = useState("Follow-up");
-  const [tone, setTone] = useState("Friendly & professional");
+  const [tone, setTone] = useState("Friendly");
   const [loading, setLoading] = useState(false);
   const [draft, setDraft] = useState(null);
   const [copied, setCopied] = useState(false);
 
   const generate = async () => {
+    if (!lead?._id) {
+      toast.error("Lead information is missing.");
+      return;
+    }
+
     setLoading(true);
+
     try {
-      const res = await aiApi.generateEmail({ leadId: lead._id, purpose, tone });
-      setDraft({ subject: res.subject, body: res.body });
+      const res = await aiApi.generateEmail({
+        leadId: lead._id,
+        purpose,
+        tone,
+      });
+
+      const email = res?.data ?? res;
+
+      if (
+        typeof email?.subject !== "string" ||
+        typeof email?.body !== "string"
+      ) {
+        throw new Error("Invalid email response from AI.");
+      }
+
+      setDraft({
+        subject: email.subject,
+        body: email.body,
+      });
+
+      setCopied(false);
+      toast.success("Email generated successfully.");
     } catch (err) {
       toast.error(err.message || "Could not generate email");
     } finally {
@@ -27,11 +53,19 @@ export function AiEmailDialog({ open, onClose, lead }) {
     }
   };
 
-  const copy = () => {
-    navigator.clipboard.writeText(`Subject: ${draft.subject}\n\n${draft.body}`);
-    setCopied(true);
-    toast.success("Email copied to clipboard");
-    setTimeout(() => setCopied(false), 1800);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(
+        `Subject: ${draft.subject}\n\n${draft.body}`,
+      );
+
+      setCopied(true);
+      toast.success("Email copied to clipboard");
+
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      toast.error("Unable to copy email.");
+    }
   };
 
   return (
@@ -44,29 +78,33 @@ export function AiEmailDialog({ open, onClose, lead }) {
       <div className="grid grid-cols-2 gap-3">
         <Field label="Purpose">
           <Select value={purpose} onChange={(e) => setPurpose(e.target.value)}>
-            {["Follow-up", "Sales pitch", "Meeting request", "Re-engagement", "Thank you"].map(
-              (p) => (
-                <option key={p}>{p}</option>
-              )
-            )}
+            {[
+              "Follow-up",
+              "Sales pitch",
+              "Meeting request",
+              "Re-engagement",
+              "Thank you",
+            ].map((p) => (
+              <option key={p}>{p}</option>
+            ))}
           </Select>
         </Field>
         <Field label="Tone">
           <Select value={tone} onChange={(e) => setTone(e.target.value)}>
-            {[
-              "Friendly & professional",
-              "Formal",
-              "Concise & direct",
-              "Warm & casual",
-            ].map((t) => (
-              <option key={t}>{t}</option>
-            ))}
+            {["Professional", "Friendly", "Formal", "Persuasive", "Casual"].map(
+              (t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ),
+            )}
           </Select>
         </Field>
       </div>
 
       <Button className="mt-4 w-full" onClick={generate} loading={loading}>
-        <Wand2 className="h-4 w-4" /> {draft ? "Regenerate draft" : "Generate email"}
+        <Wand2 className="h-4 w-4" />{" "}
+        {draft ? "Regenerate draft" : "Generate email"}
       </Button>
 
       {loading && <Spinner />}
@@ -89,7 +127,11 @@ export function AiEmailDialog({ open, onClose, lead }) {
           </Field>
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={copy}>
-              {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+              {copied ? (
+                <Check className="h-4 w-4" />
+              ) : (
+                <Copy className="h-4 w-4" />
+              )}
               {copied ? "Copied" : "Copy"}
             </Button>
           </div>

@@ -42,7 +42,7 @@ const leadSchema = new mongoose.Schema(
       default: "",
       maxlength: 254,
       match: [
-        /^$|^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
         "Please provide a valid email",
       ],
     },

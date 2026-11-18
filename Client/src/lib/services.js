@@ -1,4 +1,3 @@
-
 import api from "./api";
 
 /* ─────────────────────────────────────────────
@@ -36,8 +35,7 @@ export const leadsApi = {
 
   remove: (id) => api.delete(`/leads/${id}`),
 
-  reorder: (updates) =>
-    api.patch("/leads/reorder", { updates }),
+  reorder: (updates) => api.patch("/leads/reorder", { updates }),
 };
 
 /* ─────────────────────────────────────────────
@@ -86,7 +84,10 @@ export const tasksApi = {
 
   create: (data) => api.post("/tasks", data),
 
-  update: (id, data) => api.put(`/tasks/${id}`, data),
+  update: (id, data) => api.patch(`/tasks/${id}`, data),
+
+  updateCompletion: (id, data) =>
+    api.patch(`/tasks/${id}/completion`, data),
 
   remove: (id) => api.delete(`/tasks/${id}`),
 };
@@ -97,14 +98,15 @@ export const tasksApi = {
 ───────────────────────────────────────────── */
 
 export const aiApi = {
-  leadSummary: (leadId) =>
-    api.post(`/ai/leads/${leadId}/summary`),
+  leadSummary: (leadId) => api.post(`/ai/leads/${leadId}/summary`),
 
-  generateEmail: (leadId, data) =>
-    api.post(`/ai/leads/${leadId}/email`, data),
+  generateEmail: ({ leadId, purpose, tone }) =>
+    api.post(`/ai/leads/${leadId}/email`, {
+      purpose,
+      tone,
+    }),
 
-  salesInsights: () =>
-    api.post("/ai/sales-insights"),
+  salesInsights: () => api.post("/ai/sales-insights"),
 };
 
 /* ─────────────────────────────────────────────
