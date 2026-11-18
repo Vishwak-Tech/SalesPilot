@@ -54,40 +54,37 @@ import { STAGE_STYLES, PRIORITY_STYLES } from "../lib/constants";
 import { useAuth } from "../context/AuthContext";
 import { cn } from "../lib/utils";
 
-/* Donut chart colors */
+/* =========================================================
+   CHART DESIGN TOKENS
+   All chart colors are defined in index.css.
+========================================================= */
+
 const SOURCE_COLORS = [
-  "#0ea5e9",
-  "#38bdf8",
-  "#0369a1",
-  "#7dd3fc",
-  "#0284c7",
-  "#bae6fd",
+  "var(--color-chart-1)",
+  "var(--color-chart-2)",
+  "var(--color-chart-3)",
+  "var(--color-chart-4)",
+  "var(--color-chart-5)",
+  "var(--color-chart-6)",
 ];
 
-/**
- * Extract the API payload.
- *
- * Supports:
- * 1. Axios response interceptor returning response.data
- * 2. Backend envelope: { success, message, data }
- * 3. Direct response objects
- */
+/* =========================================================
+   API RESPONSE HELPERS
+========================================================= */
+
 function getPayload(response) {
   return response?.data ?? response;
 }
 
-/**
- * Extract a collection from an API response.
- */
 function getCollection(response, key) {
   const payload = getPayload(response);
 
-  return (
-    payload?.[key] ??
-    payload?.data?.[key] ??
-    []
-  );
+  return payload?.[key] ?? payload?.data?.[key] ?? [];
 }
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -111,16 +108,27 @@ export default function Dashboard() {
       tasksApi.list(),
     ]);
 
-    const [analyticsResult, contactsResult, leadsResult, tasksResult] =
-      results;
+    const [
+      analyticsResult,
+      contactsResult,
+      leadsResult,
+      tasksResult,
+    ] = results;
+
+    /* Analytics */
 
     if (analyticsResult.status === "fulfilled") {
       const payload = getPayload(analyticsResult.value);
 
-      if (payload?.stats && Array.isArray(payload?.pipeline)) {
+      if (
+        payload?.stats &&
+        Array.isArray(payload?.pipeline)
+      ) {
         setData(payload);
       } else {
-        setError("The dashboard returned an unexpected response.");
+        setError(
+          "The dashboard returned an unexpected response."
+        );
         setData(null);
       }
     } else {
@@ -133,27 +141,52 @@ export default function Dashboard() {
         analyticsResult.reason?.message ||
           "Unable to load dashboard analytics."
       );
+
       setData(null);
     }
 
+    /* Contacts */
+
     if (contactsResult.status === "fulfilled") {
-      setContacts(getCollection(contactsResult.value, "contacts"));
+      setContacts(
+        getCollection(contactsResult.value, "contacts")
+      );
     } else {
-      console.error("Contacts loading error:", contactsResult.reason);
+      console.error(
+        "Contacts loading error:",
+        contactsResult.reason
+      );
+
       setContacts([]);
     }
 
+    /* Leads */
+
     if (leadsResult.status === "fulfilled") {
-      setLeads(getCollection(leadsResult.value, "leads"));
+      setLeads(
+        getCollection(leadsResult.value, "leads")
+      );
     } else {
-      console.error("Leads loading error:", leadsResult.reason);
+      console.error(
+        "Leads loading error:",
+        leadsResult.reason
+      );
+
       setLeads([]);
     }
 
+    /* Tasks */
+
     if (tasksResult.status === "fulfilled") {
-      setTasks(getCollection(tasksResult.value, "tasks"));
+      setTasks(
+        getCollection(tasksResult.value, "tasks")
+      );
     } else {
-      console.error("Tasks loading error:", tasksResult.reason);
+      console.error(
+        "Tasks loading error:",
+        tasksResult.reason
+      );
+
       setTasks([]);
     }
 
@@ -171,7 +204,7 @@ export default function Dashboard() {
   if (error || !data) {
     return (
       <div className="flex min-h-[400px] flex-col items-center justify-center gap-4 text-center">
-        <div className="rounded-2xl bg-rose-50 p-4 text-rose-600">
+        <div className="rounded-2xl bg-danger-50 p-4 text-danger-600">
           <AlertTriangle className="h-8 w-8" />
         </div>
 
@@ -179,8 +212,10 @@ export default function Dashboard() {
           <h2 className="text-lg font-semibold text-ink">
             Unable to load dashboard
           </h2>
+
           <p className="mt-1 max-w-md text-sm text-ink-soft">
-            {error || "Something went wrong while loading your data."}
+            {error ||
+              "Something went wrong while loading your data."}
           </p>
         </div>
 
@@ -201,20 +236,22 @@ export default function Dashboard() {
   const recentLeads = data.recentLeads || [];
 
   const today = new Date();
+
   const start = new Date(
     today.getFullYear(),
     today.getMonth() - 5,
     1
   );
 
-  const rangeLabel = `${format(start, "dd MMM")} – ${format(
-    today,
-    "dd MMM, yyyy"
-  )}`;
+  const rangeLabel = `${format(
+    start,
+    "dd MMM"
+  )} – ${format(today, "dd MMM, yyyy")}`;
 
   return (
     <div className="space-y-6">
       {/* Header */}
+
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <h1 className="font-display text-3xl font-extrabold tracking-tight text-ink sm:text-[2.5rem]">
           Welcome Back,{" "}
@@ -235,7 +272,12 @@ export default function Dashboard() {
             title="Refresh dashboard"
             className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line text-ink-soft transition hover:bg-surface-muted disabled:opacity-50"
           >
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCw
+              className={cn(
+                "h-4 w-4",
+                loading && "animate-spin"
+              )}
+            />
           </button>
 
           <Link
@@ -249,14 +291,17 @@ export default function Dashboard() {
       </div>
 
       {/* Dashboard grid */}
+
       <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12">
         {/* Left column */}
+
         <div className="space-y-5 lg:col-span-3">
           <HeroCard value={stats.pipelineValue ?? 0} />
 
-          {/* Total lead value */}
           <Card className="p-5">
-            <p className="text-sm text-ink-soft">Total Lead Value</p>
+            <p className="text-sm text-ink-soft">
+              Total Lead Value
+            </p>
 
             <p className="mt-2 font-display text-2xl font-bold text-ink">
               {currency(stats.totalLeadValue ?? 0, {
@@ -269,7 +314,6 @@ export default function Dashboard() {
             </p>
           </Card>
 
-          {/* Conversion */}
           <Card className="p-6">
             <SectionHeading
               icon={Target}
@@ -280,7 +324,9 @@ export default function Dashboard() {
             <div className="mt-4 flex items-end gap-2">
               <p className="font-display text-3xl font-bold text-ink">
                 {stats.conversionRate ?? 0}
-                <span className="text-xl text-ink-soft">%</span>
+                <span className="text-xl text-ink-soft">
+                  %
+                </span>
               </p>
             </div>
 
@@ -296,8 +342,8 @@ export default function Dashboard() {
         </div>
 
         {/* Center column */}
+
         <div className="space-y-5 lg:col-span-6">
-          {/* Lead engagement */}
           <Card className="p-6">
             <SectionHeading
               icon={CreditCard}
@@ -310,7 +356,6 @@ export default function Dashboard() {
             </div>
           </Card>
 
-          {/* Recently updated leads */}
           <Card className="p-6">
             <SectionHeading
               title="Recently Updated Leads"
@@ -327,8 +372,8 @@ export default function Dashboard() {
         </div>
 
         {/* Right column */}
+
         <div className="space-y-5 lg:col-span-3">
-          {/* Revenue */}
           <Card className="p-6">
             <SectionHeading
               title="Revenue Overview"
@@ -376,9 +421,9 @@ export default function Dashboard() {
   );
 }
 
-/* ─────────────────────────────────────────────
-   Pipeline by stage
-───────────────────────────────────────────── */
+/* =========================================================
+   PIPELINE BY STAGE
+========================================================= */
 
 function PipelineByStage({ pipeline = [], className }) {
   const maxValue = Math.max(
@@ -406,7 +451,9 @@ function PipelineByStage({ pipeline = [], className }) {
             STAGE_STYLES[stage.stage] || STAGE_STYLES.New;
 
           const percentage = totalValue
-            ? Math.round((stage.value / totalValue) * 100)
+            ? Math.round(
+                (stage.value / totalValue) * 100
+              )
             : 0;
 
           const width = stage.value
@@ -432,7 +479,9 @@ function PipelineByStage({ pipeline = [], className }) {
                 </span>
 
                 <span className="font-semibold text-ink">
-                  {currency(stage.value, { compact: true })}
+                  {currency(stage.value, {
+                    compact: true,
+                  })}
 
                   <span className="ml-1.5 text-xs font-normal text-ink-soft">
                     {percentage}%
@@ -463,14 +512,16 @@ function PipelineByStage({ pipeline = [], className }) {
   );
 }
 
-/* ─────────────────────────────────────────────
-   Leads by source
-───────────────────────────────────────────── */
+/* =========================================================
+   LEADS BY SOURCE
+========================================================= */
 
 function LeadsBySource({ leads = [] }) {
   const grouped = leads.reduce((acc, lead) => {
     const source = lead.source || "Other";
+
     acc[source] = (acc[source] || 0) + 1;
+
     return acc;
   }, {});
 
@@ -515,7 +566,9 @@ function LeadsBySource({ leads = [] }) {
                   ))}
                 </Pie>
 
-                <Tooltip content={<ChartTooltip unit=" leads" />} />
+                <Tooltip
+                  content={<ChartTooltip unit=" leads" />}
+                />
               </PieChart>
             </ResponsiveContainer>
 
@@ -562,9 +615,9 @@ function LeadsBySource({ leads = [] }) {
   );
 }
 
-/* ─────────────────────────────────────────────
-   Upcoming tasks
-───────────────────────────────────────────── */
+/* =========================================================
+   UPCOMING TASKS
+========================================================= */
 
 function UpcomingTasks({ tasks = [] }) {
   const upcoming = tasks
@@ -573,7 +626,9 @@ function UpcomingTasks({ tasks = [] }) {
       if (!a.dueDate) return 1;
       if (!b.dueDate) return -1;
 
-      return new Date(a.dueDate) - new Date(b.dueDate);
+      return (
+        new Date(a.dueDate) - new Date(b.dueDate)
+      );
     })
     .slice(0, 4);
 
@@ -611,7 +666,7 @@ function UpcomingTasks({ tasks = [] }) {
                   className={cn(
                     "mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
                     overdue
-                      ? "bg-rose-50 text-rose-600"
+                      ? "bg-danger-50 text-danger-600"
                       : "bg-brand-50 text-brand-600"
                   )}
                 >
@@ -630,7 +685,9 @@ function UpcomingTasks({ tasks = [] }) {
                   <p
                     className={cn(
                       "text-xs",
-                      overdue ? "text-rose-600" : "text-ink-soft"
+                      overdue
+                        ? "text-danger-600"
+                        : "text-ink-soft"
                     )}
                   >
                     {task.dueDate
@@ -659,9 +716,9 @@ function UpcomingTasks({ tasks = [] }) {
   );
 }
 
-/* ─────────────────────────────────────────────
-   Top open deals
-───────────────────────────────────────────── */
+/* =========================================================
+   TOP OPEN DEALS
+========================================================= */
 
 function TopDeals({ leads = [] }) {
   const deals = [...leads]
@@ -716,7 +773,9 @@ function TopDeals({ leads = [] }) {
 
                 <div className="text-right">
                   <p className="text-sm font-semibold text-ink">
-                    {currency(lead.value, { compact: true })}
+                    {currency(lead.value, {
+                      compact: true,
+                    })}
                   </p>
 
                   <span
@@ -738,9 +797,9 @@ function TopDeals({ leads = [] }) {
   );
 }
 
-/* ─────────────────────────────────────────────
-   Lead engagement chart
-───────────────────────────────────────────── */
+/* =========================================================
+   LEAD ENGAGEMENT CHART
+========================================================= */
 
 function EngagementChart({ trend = [] }) {
   if (trend.length === 0) {
@@ -756,11 +815,16 @@ function EngagementChart({ trend = [] }) {
       <BarChart
         data={trend}
         barCategoryGap="28%"
-        margin={{ top: 15, right: 5, left: -15, bottom: 0 }}
+        margin={{
+          top: 15,
+          right: 5,
+          left: -15,
+          bottom: 0,
+        }}
       >
         <CartesianGrid
           vertical={false}
-          stroke="#e8eef3"
+          stroke="var(--color-chart-grid)"
           strokeDasharray="4 4"
         />
 
@@ -768,20 +832,28 @@ function EngagementChart({ trend = [] }) {
           dataKey="label"
           axisLine={false}
           tickLine={false}
-          tick={{ fill: "#64748b", fontSize: 12 }}
+          tick={{
+            fill: "var(--color-chart-axis)",
+            fontSize: 12,
+          }}
           dy={6}
         />
 
         <YAxis
           axisLine={false}
           tickLine={false}
-          tick={{ fill: "#64748b", fontSize: 12 }}
+          tick={{
+            fill: "var(--color-chart-axis)",
+            fontSize: 12,
+          }}
           width={30}
           allowDecimals={false}
         />
 
         <Tooltip
-          cursor={{ fill: "#f1f5f9" }}
+          cursor={{
+            fill: "var(--color-chart-cursor)",
+          }}
           content={<ChartTooltip unit=" leads" />}
         />
 
@@ -795,7 +867,9 @@ function EngagementChart({ trend = [] }) {
             <Cell
               key={item.key || item.label}
               fill={
-                item.leads > 0 ? "#0369a1" : "#bae6fd"
+                item.leads > 0
+                  ? "var(--color-brand-600)"
+                  : "var(--color-brand-100)"
               }
             />
           ))}
@@ -805,16 +879,21 @@ function EngagementChart({ trend = [] }) {
   );
 }
 
-/* ─────────────────────────────────────────────
-   Won value chart
-───────────────────────────────────────────── */
+/* =========================================================
+   WON VALUE CHART
+========================================================= */
 
 function BalanceChart({ trend = [] }) {
   return (
     <ResponsiveContainer width="100%" height={120}>
       <AreaChart
         data={trend}
-        margin={{ top: 14, right: 0, left: 0, bottom: 0 }}
+        margin={{
+          top: 14,
+          right: 0,
+          left: 0,
+          bottom: 0,
+        }}
       >
         <defs>
           <linearGradient
@@ -826,12 +905,13 @@ function BalanceChart({ trend = [] }) {
           >
             <stop
               offset="0%"
-              stopColor="#0ea5e9"
+              stopColor="var(--color-brand-500)"
               stopOpacity={0.3}
             />
+
             <stop
               offset="100%"
-              stopColor="#0ea5e9"
+              stopColor="var(--color-brand-500)"
               stopOpacity={0}
             />
           </linearGradient>
@@ -845,7 +925,7 @@ function BalanceChart({ trend = [] }) {
           type="monotone"
           dataKey="won"
           name="Won value"
-          stroke="#0284c7"
+          stroke="var(--color-brand-600)"
           strokeWidth={2.5}
           fill="url(#balance)"
         />
@@ -854,9 +934,9 @@ function BalanceChart({ trend = [] }) {
   );
 }
 
-/* ─────────────────────────────────────────────
-   Chart tooltip
-───────────────────────────────────────────── */
+/* =========================================================
+   CHART TOOLTIP
+========================================================= */
 
 function ChartTooltip({
   active,
@@ -882,9 +962,9 @@ function ChartTooltip({
   );
 }
 
-/* ─────────────────────────────────────────────
-   Recently updated leads
-───────────────────────────────────────────── */
+/* =========================================================
+   RECENTLY UPDATED LEADS
+========================================================= */
 
 function ActivityTable({ leads = [] }) {
   if (!leads.length) {
@@ -902,10 +982,13 @@ function ActivityTable({ leads = [] }) {
           <tr className="text-left text-xs uppercase tracking-wide text-ink-soft">
             <th className="pb-3 font-medium">Name</th>
             <th className="pb-3 font-medium">Date</th>
+
             <th className="hidden pb-3 font-medium sm:table-cell">
               Time
             </th>
+
             <th className="pb-3 font-medium">Status</th>
+
             <th className="pb-3 text-right font-medium">
               Value
             </th>
@@ -924,7 +1007,10 @@ function ActivityTable({ leads = [] }) {
               >
                 <td className="py-3.5">
                   <div className="flex items-center gap-3">
-                    <Avatar name={lead.name} size="sm" />
+                    <Avatar
+                      name={lead.name}
+                      size="sm"
+                    />
 
                     <div>
                       <p className="font-medium text-ink">
@@ -954,6 +1040,7 @@ function ActivityTable({ leads = [] }) {
                         style.dot
                       )}
                     />
+
                     {lead.status}
                   </span>
                 </td>
@@ -970,13 +1057,17 @@ function ActivityTable({ leads = [] }) {
   );
 }
 
-/* ─────────────────────────────────────────────
-   Top contacts
-───────────────────────────────────────────── */
+/* =========================================================
+   TOP CONTACTS
+========================================================= */
 
 function TopContactsCard({ contacts = [] }) {
   const top = contacts.slice(0, 4);
-  const overflow = Math.max(contacts.length - top.length, 0);
+
+  const overflow = Math.max(
+    contacts.length - top.length,
+    0
+  );
 
   return (
     <Card className="p-6">
@@ -1022,9 +1113,9 @@ function TopContactsCard({ contacts = [] }) {
   );
 }
 
-/* ─────────────────────────────────────────────
-   Dashboard skeleton
-───────────────────────────────────────────── */
+/* =========================================================
+   DASHBOARD SKELETON
+========================================================= */
 
 function DashboardSkeleton() {
   return (

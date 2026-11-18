@@ -1,5 +1,12 @@
 import { NavLink, useNavigate } from "react-router-dom";
-import { Search, Bell, Menu, ChevronDown, User, LogOut, Sparkles } from "lucide-react";
+import {
+  Search,
+  Bell,
+  Menu,
+  ChevronDown,
+  User,
+  LogOut,
+} from "lucide-react";
 import {
   Avatar,
   IconButton,
@@ -29,9 +36,12 @@ export function TopNav({ onMenuClick }) {
     <header className="flex items-center gap-3">
       {/* Brand */}
       <div className="flex items-center gap-2.5 pr-2">
-        <div className="brand-gradient flex h-9 w-9 items-center justify-center rounded-xl text-white">
-          <Sparkles className="h-5 w-5" />
-        </div>
+        <img
+          src="/favicon.png"
+          alt="SalesPilot"
+          className="h-9 w-auto object-contain"
+        />
+
         <span className="hidden font-display text-lg font-bold text-ink sm:block">
           SalesPilot
         </span>
@@ -58,7 +68,7 @@ export function TopNav({ onMenuClick }) {
                 "rounded-full px-5 py-2 text-sm font-medium transition",
                 isActive
                   ? "bg-surface-muted text-ink shadow-sm"
-                  : "text-ink-soft hover:text-ink"
+                  : "text-ink-soft hover:text-ink",
               )
             }
           >
