@@ -27,9 +27,16 @@ export function LeadDrawer({ open, onClose, lead, onEdit, onDelete }) {
   const stage = STAGE_STYLES[lead.status] || STAGE_STYLES.New;
 
   const runSummary = async () => {
+    if (!lead?._id) {
+      toast.error("Invalid lead ID");
+      return;
+    }
+
     setLoadingSummary(true);
+    setSummary(null);
+
     try {
-      const res = await aiApi.leadSummary({ leadId: lead._id });
+      const res = await aiApi.leadSummary(lead._id);
       setSummary(res);
     } catch (err) {
       toast.error(err.message || "Could not summarize lead");
@@ -42,8 +49,8 @@ export function LeadDrawer({ open, onClose, lead, onEdit, onDelete }) {
     summary?.riskScore >= 66
       ? "text-rose-600"
       : summary?.riskScore >= 33
-      ? "text-amber-600"
-      : "text-brand-700";
+        ? "text-amber-600"
+        : "text-brand-700";
 
   return (
     <>
@@ -53,7 +60,9 @@ export function LeadDrawer({ open, onClose, lead, onEdit, onDelete }) {
           <Avatar name={lead.name} size="lg" />
           <div className="min-w-0">
             <h2 className="truncate text-xl font-bold text-ink">{lead.name}</h2>
-            <p className="truncate text-sm text-ink-soft">{lead.company || "—"}</p>
+            <p className="truncate text-sm text-ink-soft">
+              {lead.company || "—"}
+            </p>
           </div>
         </div>
 
@@ -61,19 +70,29 @@ export function LeadDrawer({ open, onClose, lead, onEdit, onDelete }) {
           <Badge className={stage.badge} dot={stage.dot}>
             {lead.status}
           </Badge>
-          <Badge className={PRIORITY_STYLES[lead.priority]}>{lead.priority} priority</Badge>
+          <Badge className={PRIORITY_STYLES[lead.priority]}>
+            {lead.priority} priority
+          </Badge>
           <Badge>{lead.source}</Badge>
         </div>
 
         {/* Value */}
         <div className="mt-5 rounded-2xl bg-surface p-4 shadow-[var(--shadow-soft)]">
-          <p className="text-xs uppercase tracking-wide text-ink-soft">Deal value</p>
-          <p className="mt-1 text-2xl font-bold text-ink">{currency(lead.value)}</p>
+          <p className="text-xs uppercase tracking-wide text-ink-soft">
+            Deal value
+          </p>
+          <p className="mt-1 text-2xl font-bold text-ink">
+            {currency(lead.value)}
+          </p>
         </div>
 
         {/* Contact info */}
         <div className="mt-4 space-y-2">
-          <InfoRow icon={Mail} value={lead.email} href={`mailto:${lead.email}`} />
+          <InfoRow
+            icon={Mail}
+            value={lead.email}
+            href={`mailto:${lead.email}`}
+          />
           <InfoRow icon={Phone} value={lead.phone} href={`tel:${lead.phone}`} />
           <InfoRow icon={Building2} value={lead.company} />
         </div>
@@ -83,7 +102,9 @@ export function LeadDrawer({ open, onClose, lead, onEdit, onDelete }) {
             <p className="text-xs font-medium uppercase tracking-wide text-ink-soft">
               Notes
             </p>
-            <p className="mt-1.5 text-sm leading-relaxed text-ink">{lead.notes}</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-ink">
+              {lead.notes}
+            </p>
           </div>
         )}
 
@@ -94,7 +115,12 @@ export function LeadDrawer({ open, onClose, lead, onEdit, onDelete }) {
               <Sparkles className="h-4 w-4" /> AI Lead Summary
             </div>
             {!summary && (
-              <Button size="sm" variant="subtle" onClick={runSummary} loading={loadingSummary}>
+              <Button
+                size="sm"
+                variant="subtle"
+                onClick={runSummary}
+                loading={loadingSummary}
+              >
                 Analyze
               </Button>
             )}
@@ -104,7 +130,9 @@ export function LeadDrawer({ open, onClose, lead, onEdit, onDelete }) {
 
           {summary && (
             <div className="mt-3 space-y-3 animate-fade-up">
-              <p className="text-sm leading-relaxed text-ink">{summary.summary}</p>
+              <p className="text-sm leading-relaxed text-ink">
+                {summary.summary}
+              </p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl bg-surface p-3 text-center">
                   <p className="text-xs text-ink-soft">Risk score</p>
@@ -115,7 +143,9 @@ export function LeadDrawer({ open, onClose, lead, onEdit, onDelete }) {
                 </div>
                 <div className="rounded-xl bg-surface p-3 text-center">
                   <p className="text-xs text-ink-soft">Suggested priority</p>
-                  <p className="text-lg font-bold text-ink">{summary.suggestedPriority}</p>
+                  <p className="text-lg font-bold text-ink">
+                    {summary.suggestedPriority}
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-2 rounded-xl bg-surface p-3">
@@ -131,7 +161,11 @@ export function LeadDrawer({ open, onClose, lead, onEdit, onDelete }) {
 
         {/* Actions */}
         <div className="mt-5 grid grid-cols-2 gap-2">
-          <Button variant="outline" onClick={() => setEmailOpen(true)} className="col-span-2">
+          <Button
+            variant="outline"
+            onClick={() => setEmailOpen(true)}
+            className="col-span-2"
+          >
             <Wand2 className="h-4 w-4" /> Generate AI email
           </Button>
           <Button variant="secondary" onClick={() => onEdit(lead)}>
@@ -147,7 +181,11 @@ export function LeadDrawer({ open, onClose, lead, onEdit, onDelete }) {
         </p>
       </Drawer>
 
-      <AiEmailDialog open={emailOpen} onClose={() => setEmailOpen(false)} lead={lead} />
+      <AiEmailDialog
+        open={emailOpen}
+        onClose={() => setEmailOpen(false)}
+        lead={lead}
+      />
     </>
   );
 }

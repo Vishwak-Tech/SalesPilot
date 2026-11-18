@@ -53,8 +53,7 @@ const validateRelationships = async (data, ownerId) => {
 
 // Manage completion timestamp based on status
 const getCompletionFields = (status) => ({
-  completedAt:
-    status === "Completed" ? new Date() : null,
+  completedAt: status === "Completed" ? new Date() : null,
 });
 
 // 1. Create a task
@@ -66,6 +65,14 @@ export const createTask = asyncHandler(async (req, res) => {
   }
 
   const { relatedLead, relatedContact, status } = result.data;
+
+  // Prevent linking a task to both a lead and a contact
+  if (relatedLead && relatedContact) {
+    throw new ApiError(
+      400,
+      "A task cannot be linked to both a lead and a contact"
+    );
+  }
 
   // Verify ownership of linked records
   await validateRelationships(
@@ -120,10 +127,7 @@ export const getTasks = asyncHandler(async (req, res) => {
   if (relatedContact) filter.relatedContact = relatedContact;
 
   if (search) {
-    const searchRegex = new RegExp(
-      escapeRegex(search),
-      "i"
-    );
+    const searchRegex = new RegExp(escapeRegex(search), "i");
 
     filter.$or = [
       { title: searchRegex },
@@ -200,15 +204,36 @@ export const updateTask = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Task not found");
   }
 
-  const { relatedLead, relatedContact, status } = result.data;
+  const {
+    relatedLead,
+    relatedContact,
+    status,
+  } = result.data;
 
-  // Determine the final relationship state
-  const updatedLead =
-    relatedLead !== undefined ? relatedLead : task.relatedLead;
+  // Determine the final relationship state.
+  // Omitted fields preserve existing relationships.
+  // Explicit null clears the corresponding relationship.
+  let updatedLead =
+    relatedLead !== undefined
+      ? relatedLead
+      : task.relatedLead;
 
-  const updatedContact =
-    relatedContact !== undefined ? relatedContact : task.relatedContact;
+  let updatedContact =
+    relatedContact !== undefined
+      ? relatedContact
+      : task.relatedContact;
 
+  // Switching to a lead clears the existing contact.
+  if (relatedLead) {
+    updatedContact = null;
+  }
+
+  // Switching to a contact clears the existing lead.
+  if (relatedContact) {
+    updatedLead = null;
+  }
+
+  // Validate the final relationship state.
   if (updatedLead && updatedContact) {
     throw new ApiError(
       400,
@@ -216,22 +241,34 @@ export const updateTask = asyncHandler(async (req, res) => {
     );
   }
 
-  // Verify ownership of newly supplied relationships
+  // Verify ownership of the final linked records.
   await validateRelationships(
-    { relatedLead, relatedContact },
+    {
+      relatedLead: updatedLead,
+      relatedContact: updatedContact,
+    },
     req.user._id
   );
 
+  // Preserve the previous status before applying updates.
+  const previousStatus = task.status;
+
+  // Apply regular task updates.
   Object.assign(task, result.data);
 
-  // Update completedAt only when status is explicitly changed
+  // Apply the resolved relationship state.
+  task.relatedLead = updatedLead ?? null;
+  task.relatedContact = updatedContact ?? null;
+
+  // Update completion timestamp only when status changes.
   if (status !== undefined) {
-    task.completedAt =
-      status === "Completed"
-        ? task.status === "Completed" && task.completedAt
-          ? task.completedAt
-          : new Date()
-        : null;
+    if (status === "Completed") {
+      if (previousStatus !== "Completed") {
+        task.completedAt = new Date();
+      }
+    } else {
+      task.completedAt = null;
+    }
   }
 
   await task.save();
@@ -283,7 +320,7 @@ export const updateTaskCompletion = asyncHandler(async (req, res) => {
 
   const newStatus = result.data.status;
 
-  // Preserve original completion timestamp if already completed
+  // Preserve original completion timestamp if already completed.
   if (newStatus === "Completed") {
     if (task.status !== "Completed") {
       task.completedAt = new Date();

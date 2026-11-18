@@ -89,7 +89,7 @@ export const taskUpdateSchema = z
 // Complete or reopen task
 export const taskCompletionSchema = z
   .object({
-    status: z.enum(["Pending", "In Progress", "Completed"]),
+    status: z.enum(taskStatuses),
   })
   .strict();
 
@@ -109,5 +109,7 @@ export const taskQuerySchema = z
   .strict()
   .refine(
     (data) => !(data.relatedLead && data.relatedContact),
-    "Filter by either a lead or a contact, not both"
+    {
+      message: "Filter by either a lead or a contact, not both",
+    }
   );

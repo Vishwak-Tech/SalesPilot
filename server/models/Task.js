@@ -20,6 +20,7 @@ const taskSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
 
     // Task information
@@ -70,6 +71,7 @@ const taskSchema = new mongoose.Schema(
       default: null,
     },
 
+    // Completion tracking
     completedAt: {
       type: Date,
       default: null,
@@ -79,6 +81,16 @@ const taskSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Prevent linking a task to both a lead and a contact.
+taskSchema.pre("validate", function () {
+  if (this.relatedLead && this.relatedContact) {
+    this.invalidate(
+      "relatedContact",
+      "A task cannot be linked to both a lead and a contact"
+    );
+  }
+});
 
 // Owner-scoped task listing
 taskSchema.index({ owner: 1, dueDate: 1 });

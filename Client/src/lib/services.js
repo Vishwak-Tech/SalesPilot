@@ -31,7 +31,7 @@ export const leadsApi = {
 
   create: (data) => api.post("/leads", data),
 
-  update: (id, data) => api.put(`/leads/${id}`, data),
+  update: (id, data) => api.patch(`/leads/${id}`, data),
 
   remove: (id) => api.delete(`/leads/${id}`),
 
@@ -50,7 +50,7 @@ export const contactsApi = {
 
   create: (data) => api.post("/contacts", data),
 
-  update: (id, data) => api.put(`/contacts/${id}`, data),
+  update: (id, data) => api.patch(`/contacts/${id}`, data),
 
   remove: (id) => api.delete(`/contacts/${id}`),
 };
