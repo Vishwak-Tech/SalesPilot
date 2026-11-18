@@ -1,8 +1,11 @@
 import { format, formatDistanceToNow, isValid } from "date-fns";
 
-/** Format a number as compact USD currency, e.g. 78989 -> "$78,989". */
+/** Format a number as USD currency. */
 export function currency(value = 0, { compact = false } = {}) {
-  const n = Number(value) || 0;
+  const n = Number(value);
+
+  if (!Number.isFinite(n)) return "$0";
+
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD",
@@ -11,25 +14,28 @@ export function currency(value = 0, { compact = false } = {}) {
   }).format(n);
 }
 
-/** Short, human date: "16 Jun 2025". */
+/** Format date: "16 Jun 2025". */
 export function shortDate(value) {
   const d = new Date(value);
   return isValid(d) ? format(d, "dd MMM yyyy") : "—";
 }
 
-/** "10:30 PM" time string. */
+/** Format time: "10:30 PM". */
 export function timeOf(value) {
   const d = new Date(value);
   return isValid(d) ? format(d, "hh:mm a") : "";
 }
 
-/** Relative time: "3 days ago". */
+/** Format relative time: "3 days ago" or "in 2 days". */
 export function relative(value) {
   const d = new Date(value);
-  return isValid(d) ? `${formatDistanceToNow(d)} ago` : "";
+
+  return isValid(d)
+    ? formatDistanceToNow(d, { addSuffix: true })
+    : "";
 }
 
-/** YYYY-MM-DD value for <input type="date"> binding. */
+/** Format date for HTML date inputs: "YYYY-MM-DD". */
 export function dateInputValue(value) {
   const d = new Date(value);
   return isValid(d) ? format(d, "yyyy-MM-dd") : "";
