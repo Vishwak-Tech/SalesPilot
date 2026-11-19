@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
+import connectDB from "./config/db.js";
 
 import authRoutes from "./routes/auth.routes.js";
 import leadRoutes from "./routes/lead.routes.js";
@@ -47,6 +48,16 @@ app.get("/api/health", (req, res) => {
     message: "SalesPilot API is running",
     environment: env.NODE_ENV,
   });
+});
+
+// Ensure MongoDB is connected before API routes execute
+app.use("/api", async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
 });
 
 // Application routes
