@@ -1,4 +1,3 @@
-
 import User from "../models/User.js";
 
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -14,10 +13,12 @@ import {
 } from "../validators/auth.validator.js";
 
 // Shared cookie configuration
+const isProduction = env.NODE_ENV === "production";
+
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: env.NODE_ENV === "production",
-  sameSite: "lax",
+  secure: isProduction,
+  sameSite: isProduction ? "none" : "lax",
   maxAge: 7 * 24 * 60 * 60 * 1000,
   path: "/",
 };
@@ -59,7 +60,7 @@ const clearTokenCookie = (res) => {
 export const register = asyncHandler(async (req, res) => {
   const { name, email, password, company } = validateRequest(
     registerSchema,
-    req.body
+    req.body,
   );
 
   const user = await User.create({
@@ -113,7 +114,7 @@ export const getMe = asyncHandler(async (req, res) => {
 export const updateProfile = asyncHandler(async (req, res) => {
   const { name, company, avatar } = validateRequest(
     profileUpdateSchema,
-    req.body
+    req.body,
   );
 
   const user = req.user;
@@ -135,7 +136,7 @@ export const updateProfile = asyncHandler(async (req, res) => {
 export const changePassword = asyncHandler(async (req, res) => {
   const { currentPassword, newPassword } = validateRequest(
     changePasswordSchema,
-    req.body
+    req.body,
   );
 
   const user = await User.findById(req.user._id).select("+password");
